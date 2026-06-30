@@ -17,6 +17,6 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// ✅ Export services so other files can import them
+// Export services so other files can import them
 export const auth = getAuth(app);
 export const db = getFirestore(app);
