@@ -1,9 +1,12 @@
 import React from "react";
 import { auth } from "../firebase";
-import { signOut } from "firebase/auth";
+import { signOut, updateProfile } from "firebase/auth";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "./ThemeContext";
 import { useToast } from "./Toast";
+import { useAdminMode } from "./AdminModeContext";
 
 function getInitials(user) {
   if (!user) return "?";
@@ -28,11 +31,29 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { toast }       = useToast();
   const user            = auth.currentUser;
+  const { isAdminMode, isSuperAdmin, toggleAdminMode } = useAdminMode();
 
   const logout = async () => {
     await signOut(auth);
     toast("Signed out. See you soon! 👋", "info");
     navigate("/");
+  };
+
+  const handleChangeName = async () => {
+    if (!user) return;
+    const newName = window.prompt("Enter new display name:", getDisplayName(user));
+    if (newName && newName.trim() !== "") {
+      try {
+        await updateProfile(user, { displayName: newName.trim() });
+        // Also update Firestore users collection
+        await updateDoc(doc(db, "users", user.uid), {
+          displayName: newName.trim()
+        });
+        toast("Name updated successfully!", "success");
+      } catch (err) {
+        toast("Failed to update name.", "error");
+      }
+    }
   };
 
   return (
@@ -43,8 +64,20 @@ export default function Navbar() {
       </div>
 
       <div className="navbar-right">
+        {isSuperAdmin && (
+          <button className={`theme-btn ${isAdminMode ? 'admin-active' : ''}`} onClick={toggleAdminMode} title="Toggle Admin Mode">
+            {isAdminMode ? "🛡️ Admin: ON" : "🛡️ Admin: OFF"}
+          </button>
+        )}
+
+        {isSuperAdmin && isAdminMode && (
+          <button className="theme-btn admin-link-btn" onClick={() => navigate("/admin")}>
+            ⚙️ Panel
+          </button>
+        )}
+
         {user && (
-          <div className="user-info">
+          <div className="user-info" onClick={handleChangeName} style={{ cursor: "pointer" }} title="Click to change name">
             <div className="user-avatar" title={user.email}>
               {getInitials(user)}
             </div>

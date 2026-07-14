@@ -5,9 +5,11 @@ import { auth } from "./firebase";
 import Auth from "./components/Auth";
 import ChatRooms from "./components/ChatRooms";
 import ChatRoom from "./components/ChatRoom";
+import Admin from "./components/Admin";
 import Navbar from "./components/Navbar";
 import { ThemeProvider } from "./components/ThemeContext";
 import { ToastProvider } from "./components/Toast";
+import { AdminModeProvider } from "./components/AdminModeContext";
 import "./App.css";
 
 function AppContent() {
@@ -37,6 +39,7 @@ function AppContent() {
         <Route path="/"         element={user ? <Navigate to="/rooms" replace /> : <Auth />} />
         <Route path="/rooms"    element={user ? <ChatRooms /> : <Navigate to="/" replace />} />
         <Route path="/room/:id" element={user ? <ChatRoom />  : <Navigate to="/" replace />} />
+        <Route path="/admin"    element={user ? <Admin />     : <Navigate to="/" replace />} />
       </Routes>
     </>
   );
@@ -45,11 +48,13 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <ToastProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </ToastProvider>
+      <AdminModeProvider>
+        <ToastProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </ToastProvider>
+      </AdminModeProvider>
     </ThemeProvider>
   );
 }

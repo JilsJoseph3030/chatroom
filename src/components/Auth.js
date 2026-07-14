@@ -5,8 +5,10 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  updateProfile,
+  updateProfile
 } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./Toast";
 
@@ -31,14 +33,28 @@ export default function Auth() {
     }
     setLoading(true);
     try {
+      let userObj;
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email.trim(), password);
+        const { user } = await signInWithEmailAndPassword(auth, email.trim(), password);
+        userObj = user;
         toast("Welcome back! 🎉", "success");
       } else {
         const { user } = await createUserWithEmailAndPassword(auth, email.trim(), password);
         await updateProfile(user, { displayName: displayName.trim() });
+        userObj = user;
         toast("Account created! Let's chat 🚀", "success");
       }
+      
+      // Save/update user in Firestore
+      if (userObj) {
+        await setDoc(doc(db, "users", userObj.uid), {
+          uid: userObj.uid,
+          email: userObj.email,
+          displayName: isLogin ? userObj.displayName : displayName.trim(),
+          lastLogin: serverTimestamp(),
+        }, { merge: true });
+      }
+
       navigate("/rooms");
     } catch (err) {
       toast(err.message.replace("Firebase: ", ""), "error");
@@ -51,7 +67,18 @@ export default function Auth() {
     const provider = new GoogleAuthProvider();
     setLoading(true);
     try {
-      await signInWithPopup(auth, provider);
+      const { user } = await signInWithPopup(auth, provider);
+      
+      // Save/update user in Firestore
+      if (user) {
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          lastLogin: serverTimestamp(),
+        }, { merge: true });
+      }
+
       toast("Signed in with Google! 🎉", "success");
       navigate("/rooms");
     } catch (err) {

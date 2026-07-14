@@ -7,6 +7,7 @@ import {
   arrayUnion, arrayRemove, setDoc, deleteField,
 } from "firebase/firestore";
 import { useToast } from "./Toast";
+import { useAdminMode } from "./AdminModeContext";
 
 /* ─── Constants ─────────────────────────────────── */
 const EMOJIS = [
@@ -68,6 +69,11 @@ export default function ChatRoom() {
   const typingTimerRef  = useRef(null);
 
   const currentUser = auth.currentUser;
+  const { isSuperAdmin, isAdminMode } = useAdminMode();
+  const isAdmin = isSuperAdmin && isAdminMode;
+  
+  const [editingMsgId, setEditingMsgId] = useState(null);
+  const [editString, setEditString] = useState("");
 
   /* ── Clear typing field in Firestore ── */
   const clearTyping = useCallback(() => {
@@ -229,6 +235,28 @@ export default function ChatRoom() {
     }
   };
 
+  /* ── Edit message ── */
+  const handleEditMessage = async (msgId) => {
+    if (!editString.trim()) return;
+    try {
+      await updateDoc(doc(db, "rooms", id, "messages", msgId), {
+        text: editString.trim(),
+        isEdited: true
+      });
+      setEditingMsgId(null);
+      toast("Message updated.", "success");
+    } catch {
+      toast("Failed to update message.", "error");
+    }
+  };
+
+  const startEdit = (msg) => {
+    setEditingMsgId(msg.id);
+    setEditString(msg.text);
+    setShowEmoji(false);
+    setReactionTarget(null);
+  };
+
   /* ── Emoji picker insert ── */
   const insertEmoji = (emoji) => {
     setText((prev) => prev + emoji);
@@ -368,20 +396,42 @@ export default function ChatRoom() {
                       >
                         😊
                       </button>
-                      {isOwn && (
-                        <button
-                          className="msg-action-btn delete"
-                          title="Delete"
-                          onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }}
-                        >
-                          🗑️
-                        </button>
+                      {(isOwn || isAdmin) && (
+                        <>
+                          <button
+                            className="msg-action-btn edit"
+                            title="Edit"
+                            onClick={(e) => { e.stopPropagation(); startEdit(msg); }}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="msg-action-btn delete"
+                            title="Delete"
+                            onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }}
+                          >
+                            🗑️
+                          </button>
+                        </>
                       )}
                     </div>
 
                     {/* Bubble */}
                     <div className="message-bubble">
-                      {isImageUrl(msg.text) ? (
+                      {editingMsgId === msg.id ? (
+                        <div className="msg-edit-mode" onClick={(e) => e.stopPropagation()}>
+                          <textarea 
+                            className="msg-edit-textarea"
+                            value={editString} 
+                            onChange={(e) => setEditString(e.target.value)}
+                            rows={2}
+                          />
+                          <div className="msg-edit-actions">
+                            <button className="msg-edit-save" onClick={() => handleEditMessage(msg.id)}>Save</button>
+                            <button className="msg-edit-cancel" onClick={() => setEditingMsgId(null)}>Cancel</button>
+                          </div>
+                        </div>
+                      ) : isImageUrl(msg.text) ? (
                         <img
                           src={msg.text}
                           alt="Shared"
@@ -389,7 +439,7 @@ export default function ChatRoom() {
                           onError={(e) => { e.currentTarget.style.display = "none"; }}
                         />
                       ) : (
-                        <div className="msg-text">{msg.text}</div>
+                        <div className="msg-text">{msg.text} {msg.isEdited && <span className="msg-edited-tag">(edited)</span>}</div>
                       )}
                       <span className="msg-time">{formatTime(msg.createdAt)}</span>
                     </div>
