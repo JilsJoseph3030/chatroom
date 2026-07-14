@@ -56,4 +56,4 @@ Boom! The app should pop open in your browser at `http://localhost:3000`.
 Found a bug? Want to add a feature that lets us communicate via interpretive dance? Feel free to open an issue or a pull request. We accept all forms of constructive criticism, especially if accompanied by memes.
 
 ---
-*Built with React, Firebase, and a disturbing amount of caffeine.* ☕
+
