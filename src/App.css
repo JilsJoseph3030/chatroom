@@ -1883,18 +1883,27 @@
   }
   
   .logo {
-    font-size: 16px;
+    display: none;
   }
 
   .user-name {
     display: none;
   }
 
+  .theme-btn span, .logout-btn span {
+    display: none;
+  }
+
   .theme-btn, .logout-btn {
-    padding: 6px 10px;
-    font-size: 12px;
+    padding: 8px;
+    font-size: 16px;
+    gap: 0;
   }
   
+  .navbar-right {
+    gap: 8px;
+  }
+
   .rooms-grid {
     grid-template-columns: 1fr;
   }

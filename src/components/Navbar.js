@@ -66,13 +66,13 @@ export default function Navbar() {
       <div className="navbar-right">
         {isSuperAdmin && (
           <button className={`theme-btn ${isAdminMode ? 'admin-active' : ''}`} onClick={toggleAdminMode} title="Toggle Admin Mode">
-            {isAdminMode ? "🛡️ Admin: ON" : "🛡️ Admin: OFF"}
+            🛡️ <span>{isAdminMode ? "Admin: ON" : "Admin: OFF"}</span>
           </button>
         )}
 
         {isSuperAdmin && isAdminMode && (
           <button className="theme-btn admin-link-btn" onClick={() => navigate("/admin")}>
-            ⚙️ Panel
+            ⚙️ <span>Panel</span>
           </button>
         )}
 
@@ -86,11 +86,11 @@ export default function Navbar() {
         )}
 
         <button className="theme-btn" onClick={toggleTheme}>
-          {theme === "light" ? "🌙 Dark" : "☀️ Light"}
+          {theme === "light" ? "🌙" : "☀️"} <span>{theme === "light" ? "Dark" : "Light"}</span>
         </button>
 
         <button className="logout-btn" onClick={logout}>
-          ← Logout
+          ← <span>Logout</span>
         </button>
       </div>
     </nav>
