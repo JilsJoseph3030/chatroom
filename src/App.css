@@ -1603,7 +1603,6 @@
   .auth-right { width: 100%; min-width: unset; padding: 48px 28px; }
   .rooms-page { padding: 20px 16px; }
   .rooms-grid { grid-template-columns: 1fr; }
-  .chatroom-sidebar { display: none; }
   .user-name { display: none; }
   .rooms-header { flex-direction: column; align-items: flex-start; }
 }
